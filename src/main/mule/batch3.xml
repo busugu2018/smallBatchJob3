@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:batch="http://www.mulesoft.org/schema/mule/batch"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="8bb76b3c-2163-423e-9514-64bf959fd2bd" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<flow name="batch3Flow" doc:id="a9e3f49c-3546-4c3b-a815-0e6ec9a358c9" >
+		<http:listener doc:name="Listener" doc:id="12708fe4-1654-4737-9ec7-739a960e6a5f" config-ref="HTTP_Listener_config" path="/batch3_1">
+			<http:response >
+				<http:body ><![CDATA[Batch completed.]]></http:body>
+			</http:response>
+		</http:listener>
+		<logger level="INFO" doc:name="Logger" doc:id="ffd74a7e-6009-4ff0-b721-52eb1f1520d4" message="log--- Batch job begins here #[payload]"/>
+		<batch:job jobName="batch3" doc:id="812c955d-6565-444e-9846-bc090fd3d54d" blockSize="3">
+			<batch:process-records >
+				<batch:step name="Batch_Step" doc:id="6fe3c917-3d11-42dd-b5c7-b877aefb7dfb">
+					<logger level="INFO" doc:name="Logger" doc:id="d32e8257-3174-40b7-81f8-7f4afcf4a232" message="Log--- Batch completed."/>
+					<batch:aggregator doc:name="Batch Aggregator" doc:id="858d11e0-9358-4313-ab91-dc5ea33b7dbd" size="3">
+						<logger level="INFO" doc:name="Logger" doc:id="50988146-0464-48ac-b471-1065e4514730" message="Log--- completion of 1 batch step."/>
+					</batch:aggregator>
+				</batch:step>
+			</batch:process-records>
+			<batch:on-complete >
+				<logger level="INFO" doc:name="Logger" doc:id="a0acac02-3ca3-49c2-bf1c-778ee5047f3c" message="Log--- Entire batch job."/>
+			</batch:on-complete>
+		</batch:job>
+	</flow>
+	<flow name="batch3Flow1" doc:id="a8e33dcf-5446-40c3-b6ef-7f0e126839e8" >
+		<http:listener doc:name="Listener" doc:id="9c68d642-0b50-4405-bdbd-69283281a86e" config-ref="HTTP_Listener_config" path="/batch3_2" >
+			<http:response >
+				<http:body ><![CDATA[Batch completed.]]></http:body>
+			</http:response>
+		</http:listener>
+		<logger level="INFO" doc:name="Logger" doc:id="dfc507ab-9fb4-4211-952c-1a18701928d7" message="log--- Batch job begins here #[payload]" />
+		<batch:job jobName="batch3Batch_Job" doc:id="4a1f86a7-5549-4b86-874f-3f1207f6943e" blockSize="2" >
+			<batch:process-records >
+				<batch:step name="Batch_Step" doc:id="91e1b08d-7e7a-4482-a276-3ae7ddbf9ee6" acceptExpression='#[payload.billingCity=="Dallas"]' >
+					<logger level="INFO" doc:name="Logger" doc:id="58ec818d-233b-46a0-b904-96b0cc9963cd" message="Log--- Batch completed." />
+					<batch:aggregator doc:name="Batch Aggregator" doc:id="70cbf600-5658-4731-8914-933ab8b20dd7" size="2" >
+						<logger level="INFO" doc:name="Logger" doc:id="508ef8fe-f188-4eda-938d-70fba06d82df" message="Log--- completion of 1 batch step." />
+					</batch:aggregator>
+				</batch:step>
+			</batch:process-records>
+			<batch:on-complete >
+				<logger level="INFO" doc:name="Logger" doc:id="0e631f21-8bc9-4f32-aba8-ed2853316af2" message="Log--- Entire batch job." />
+			</batch:on-complete>
+		</batch:job>
+	</flow>
+	<flow name="batch3Flow2" doc:id="988b336f-33e0-400b-8154-0e6cd17e3873" >
+		<http:listener doc:name="Listener" doc:id="1c872417-de35-4e60-930b-6a72bfe1cd28" config-ref="HTTP_Listener_config" path="/batch3_3" >
+			<http:response >
+				<http:body ><![CDATA[Batch completed.]]></http:body>
+			</http:response>
+		</http:listener>
+		<logger level="INFO" doc:name="Logger" doc:id="04e2221d-bad1-43bc-a19e-5c80247a582f" message="log--- Batch job begins here #[payload]" />
+		<ee:transform doc:name="Transform Message" doc:id="dbaae827-b725-4604-858d-e5e55f4c5e0b" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+payload map {
+	billingCity : $.billingCity,
+	billingState : $.billingState
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<batch:job jobName="batch" doc:id="e5cf9b29-247f-41fd-82e1-6ffcd4929632" blockSize="2" >
+			<batch:process-records >
+				<batch:step name="Batch_Step" doc:id="687249dc-3d32-4f07-a2e2-9b580ba68059" acceptExpression='#[payload.billingCity=="Dallas"]'>
+					<logger level="INFO" doc:name="Logger" doc:id="de768b81-6419-4431-aaff-a21f49e153fa" message="Log--- Batch completed." />
+					<batch:aggregator doc:name="Batch Aggregator" doc:id="c7cb5511-21dc-42a0-9134-f301a11afca1" size="2" >
+						<logger level="INFO" doc:name="Logger" doc:id="a2cff285-a7cf-4ec0-9968-3a74dfa3e79c" message="Log--- completion of 1 batch step." />
+					</batch:aggregator>
+				</batch:step>
+			</batch:process-records>
+			<batch:on-complete >
+				<logger level="INFO" doc:name="Logger" doc:id="58e3ce32-5d59-41a5-830d-65cf2ffdf967" message="Log--- Entire batch job." />
+			</batch:on-complete>
+		</batch:job>
+	</flow>
+</mule>
